@@ -175,7 +175,7 @@ ${ layout.menubar(section='bundles', is_editor=True, pullright=buttons) }
 
 
 <div id="settingsModal" class="modal hide fade">
-  <div class="modal-header" style="padding-bottom: 2px">
+  <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
     <h3 class="modal-title" id="myModalLabel">${ _('Settings') }</h3>
   </div>
