@@ -2257,7 +2257,35 @@ from notebook.conf import ENABLE_QUERY_BUILDER
   </script>
 
   <script type="text/html" id="assistant-panel-template">
-    <pre data-bind="text: ko.mapping.toJSON(activeLocations)"></pre>
+    ${ _('Tables') }
+    <br/>
+    <ul data-bind="foreach: activeTables">
+      <li><span data-bind="text: $data"></span> <i class="fa fa-info"></i>
+    </ul>
+
+    <form class="form-horizontal">
+      <fieldset>
+        ${ _('Suggestions') }<br/>
+        <ul>
+          <li>Popular fields for the tables are: [code, salary, amount]</li>
+          <li>The query would run 2x faster by adding a WHERE date_f > '2017-01-01'</li>
+          <li>Could be automated with integrated scheduler</li>
+          <li>Data has not been refreshed since last run 3 days ago  <i class="fa fa-warning"></i> <i class="fa fa-refresh"></i></li></li>
+          <li>A schema change happened last week, a new column 'salary_med' was added</li>
+          <li>Data statistics are not accurate, click to refresh them</li>
+          <li>Query ran 17 times last week</li>
+          <li>The datasets are sometimes joined with table [Population]</li>
+          <li>Query would be a good candidate to run interactively with Impala</li>
+          <li>Parameterize the query?</li>
+        </ul>
+      </fieldset>
+    </form>
+
+    <!-- ko if: HAS_OPTIMIZER -->
+      <a href="javascript:void(0)" data-bind="click: function() { console.log('00'); huePubSub.publish('editor.workfload.upload'); }" title="${ _('Load past query history in order to improve recommendations') }">
+        <i class="fa fa-fw fa-cloud-upload"></i> ${_('Upload workload')}
+      </a>
+    <!-- /ko -->
   </script>
 
   <script type="text/javascript" charset="utf-8">
@@ -2271,8 +2299,19 @@ from notebook.conf import ENABLE_QUERY_BUILDER
 
         self.lastLocationsPerType = ko.observable({});
 
-        self.activeLocations = ko.pureComputed(function () {
-          return self.lastLocationsPerType()[self.activeType()];
+        self.activeLocations = ko.computed(function () {
+          return self.lastLocationsPerType()[self.activeType()] ? self.lastLocationsPerType()[self.activeType()] : [];
+        });
+        self.activeTables = ko.computed(function () {
+          var allTables = $.grep(self.activeLocations(), function(item) { return item.type == 'table'; });
+          var tables = [];
+          $.each(allTables, function(i, item) {
+            var tableName = item.identifierChain[item.identifierChain.length - 1].name;
+            if (tables.indexOf(tableName) == -1) {
+              tables.push(tableName);
+            }
+          });
+          return tables;
         });
 
         self.disposals.push(huePubSub.subscribe('active.snippet.type.changed', self.activeType).remove);
